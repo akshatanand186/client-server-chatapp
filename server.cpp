@@ -1,49 +1,36 @@
-#include <bits/stdc++.h>
-#include <sys/types.h>
+#include <stdio.h>
+#include <string.h>
+
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h>
+#include <iostream>
 #include <unistd.h>
 
 using namespace std;
 
-#define MYPORT "3490"
+int main(){
+    
+    sockaddr_in address;
+    // socklen_t addrlen;
+    socklen_t addrlen = sizeof(address);
+    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    address.sin_family = AF_INET;
+    address.sin_port = htons(3490);
+    address.sin_addr.s_addr = INADDR_ANY;
+    bind(sock_fd,(struct sockaddr*)&address,sizeof(address));
+    listen(sock_fd,3);
+    int newfd = accept(sock_fd,(struct sockaddr*)&address, &addrlen);
+    
 
-int main()
-{
-    int sockfd, new_fd;
-    struct sockaddr_storage their_addr;
-    socklen_t addr_size;
-    struct addrinfo hints, *res;
+    cout << "Hello\n";
+    char msg[200] = "Akshat is here!";
+    int len, bytes_sent;
+    len = strlen(msg);
+    send(newfd, msg, len, 0);
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    // hints.ai_flags = AI_PASSIVE;
+    close(sock_fd);
 
-    getaddrinfo("127.0.0.1", MYPORT, &hints, &res);
-
-    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    bind(sockfd, res->ai_addr, res->ai_addrlen);
-    listen(sockfd, 10);
-
-    addr_size = sizeof their_addr;
-    new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
-    char str[] = "hey there how u";
-    send(new_fd, str, sizeof(str), 0);
-    char buf[1000];
-
-    while (1)
-    {
-        int numbytes = recv(new_fd, buf, 1000, 0);
-        if (numbytes == 0)
-        {
-            cout << "Disconnected\n";
-            close(new_fd);
-        }
-        for(int i=0;i<numbytes;i++){
-            cout << buf[i] << " ";
-        }
-        cout << endl;
-    }
-    close(sockfd);
 }
